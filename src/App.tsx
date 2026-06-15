@@ -20,7 +20,10 @@ import {
   ArrowRight,
   Lock,
   Clock,
-  Briefcase
+  Briefcase,
+  X,
+  XCircle,
+  Info
 } from "lucide-react";
 
 // Target launch date: October 15, 2026 at 09:00:00 UTC
@@ -31,6 +34,13 @@ interface CountdownTime {
   hours: number;
   minutes: number;
   seconds: number;
+}
+
+interface Toast {
+  id: string;
+  title: string;
+  message: string;
+  type: "success" | "error" | "loading" | "info";
 }
 
 export default function App() {
@@ -58,6 +68,26 @@ export default function App() {
   >("idle");
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [serverEnquiryReceipt, setServerEnquiryReceipt] = useState<any>(null);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const showToast = (title: string, message: string, type: Toast["type"]) => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setToasts((prev) => {
+      const filtered = type === "loading" ? prev.filter(t => t.type !== "loading") : prev;
+      return [...filtered, { id, title, message, type }];
+    });
+
+    if (type !== "loading") {
+      setTimeout(() => {
+        dismissToast(id);
+      }, 4500);
+    }
+    return id;
+  };
+
+  const dismissToast = (id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
 
   // Handle Countdown Ticks
   useEffect(() => {
@@ -93,12 +123,12 @@ export default function App() {
     e.preventDefault();
     if (!formFields.name || !formFields.email || !formFields.phone || !formFields.company) {
       setSubmitStatus("error");
-      setStatusMessage("Please fulfill all mandatory properties: Name, Email, Contact Number, and Pharma Store Name.");
+      showToast("Subscription Error", "Please fulfill all mandatory properties: Name, Email, Contact Number, and Pharma Store Name.", "error");
       return;
     }
 
     setSubmitStatus("submitting");
-    setStatusMessage("Encrypting transmission and dispatching connection packets...");
+    const loadingId = showToast("Processing Registration", "Encrypting transmission and dispatching connection packets...", "loading");
 
     try {
       const response = await fetch("/api/enquiry", {
@@ -110,27 +140,25 @@ export default function App() {
       });
 
       const data = await response.json();
+      dismissToast(loadingId);
 
       if (response.ok && data.success) {
         setSubmitStatus("success");
-        setStatusMessage(data.message);
         setServerEnquiryReceipt({
           ...formFields,
           timestamp: new Date().toISOString(),
           isDemo: data.developmentMode || false
         });
+        showToast("Registration Success", "Your pharmacy store has been successfully registered!", "success");
       } else {
         setSubmitStatus("error");
-        setStatusMessage(
-          data.message || "A secure server connection handshake failed. Please attempt submission again."
-        );
+        showToast("Subscription Error", data.message || "A secure server connection handshake failed. Please attempt submission again.", "error");
       }
     } catch (err: any) {
       console.error("AJAX enquiry dispatch error:", err);
+      dismissToast(loadingId);
       setSubmitStatus("error");
-      setStatusMessage(
-        "Network connection interrupted. Ensure server is active and retry."
-      );
+      showToast("Subscription Error", "Network connection interrupted. Ensure server is active and retry.", "error");
     }
   };
 
@@ -152,6 +180,60 @@ export default function App() {
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[#fafafa] font-sans selection:bg-sky-500/10 selection:text-sky-900">
       
+      {/* Floating Toast Notification Container (Top Right) */}
+      <div className="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none">
+        <AnimatePresence>
+          {toasts.map((toast) => (
+            <motion.div
+              key={toast.id}
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 100 }}
+              className={`flex items-start gap-3 p-4 rounded-xl shadow-xl border bg-white pointer-events-auto max-w-sm w-full ${
+                toast.type === "success"
+                  ? "border-teal-100"
+                  : toast.type === "error"
+                  ? "border-rose-100"
+                  : toast.type === "loading"
+                  ? "border-sky-100"
+                  : "border-slate-100"
+              }`}
+            >
+              {toast.type === "success" && (
+                <div className="h-6 w-6 rounded-full bg-teal-50 border border-teal-200 flex items-center justify-center shrink-0 text-teal-600">
+                  <CheckCircle2 className="h-4 w-4" />
+                </div>
+              )}
+              {toast.type === "error" && (
+                <div className="h-6 w-6 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center shrink-0 text-rose-600">
+                  <XCircle className="h-4 w-4" />
+                </div>
+              )}
+              {toast.type === "loading" && (
+                <div className="h-6 w-6 flex items-center justify-center shrink-0">
+                  <span className="inline-block animate-spin h-4.5 w-4.5 rounded-full border-2 border-sky-600/30 border-t-sky-600" />
+                </div>
+              )}
+              {toast.type === "info" && (
+                <div className="h-6 w-6 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center shrink-0 text-indigo-600">
+                  <Info className="h-4 w-4" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <span className="text-xs font-bold text-slate-800 block leading-tight">{toast.title}</span>
+                <span className="text-[11px] text-slate-500 block mt-0.5 leading-normal">{toast.message}</span>
+              </div>
+              <button
+                className="text-slate-400 hover:text-slate-600 transition-colors shrink-0 items-center justify-center self-start"
+                onClick={() => dismissToast(toast.id)}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
       {/* Dynamic Aesthetic Background Grids & Blobs */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-sky-200/20 blur-[120px]" />
@@ -249,7 +331,7 @@ export default function App() {
           {/* Right Column: High Fidelity Product Preview Image */}
           <div className="lg:col-span-6 flex items-center justify-center">
             <img 
-              src="https://pharmovix.com/IMAGE_PHARMOVIX.png" 
+              src="https://patelarsh.com/SpaceOn%20Logo/Selected%20Project/IMAGE_PHARMOVIX.png" 
               alt="Pharmovix ERP Platform Preview" 
               className="w-full h-auto object-contain"
               referrerPolicy="no-referrer"
@@ -374,28 +456,7 @@ export default function App() {
                       />
                     </div>
 
-                    {/* Display Alert Area if Status is working/errored */}
-                    {statusMessage && submitStatus !== "idle" && (
-                      <div
-                        className={`flex items-start gap-2.5 p-3.5 rounded-xl border text-xs leading-relaxed transition-all duration-300 ${
-                          submitStatus === "error"
-                            ? "bg-rose-50 border-rose-200 text-rose-800"
-                            : "bg-sky-50 border-sky-100 text-sky-800"
-                        }`}
-                      >
-                        {submitStatus === "error" ? (
-                          <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
-                        ) : (
-                          <span className="h-2.5 w-2.5 rounded-full bg-sky-500 animate-ping mt-1.5 shrink-0" />
-                        )}
-                        <div>
-                          <span className="font-semibold block">
-                            {submitStatus === "error" ? "Subscription Error" : "Processing Registration"}
-                          </span>
-                          {statusMessage}
-                        </div>
-                      </div>
-                    )}
+
                     {/* Submit Trigger Button */}
                     <button
                       type="submit"

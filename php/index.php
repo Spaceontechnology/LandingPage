@@ -77,6 +77,9 @@
 </head>
 <body class="font-sans antialiased relative min-h-screen overflow-x-hidden selection:bg-sky-500/30 selection:text-sky-200">
 
+    <!-- Floating Toast Notification Container (Top Right) -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none"></div>
+
     <!-- Ambient Glowing Blobs -->
     <div class="absolute inset-0 pointer-events-none z-0">
         <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-sky-900/10 blur-[120px]"></div>
@@ -162,7 +165,7 @@
 
             <!-- Right Grid Pane: High Fidelity Product Preview Image -->
             <div class="lg:col-span-6 flex items-center justify-center">
-                <img src="https://pharmovix.com/IMAGE_PHARMOVIX.png" alt="Pharmovix ERP Platform Preview" class="w-full h-auto object-contain" referrerPolicy="no-referrer">
+                <img src="https://patelarsh.com/SpaceOn%20Logo/Selected%20Project/IMAGE_PHARMOVIX.png" alt="Pharmovix ERP Platform Preview" class="w-full h-auto object-contain" referrerpolicy="no-referrer">
             </div>
  
         </main>
@@ -253,14 +256,7 @@
                             <textarea id="message" rows="3" placeholder="Outline any key requirements or custom modules you are most interested in..." class="glass-input text-sm py-3 min-h-[80px] max-h-[110px] resize-y"></textarea>
                         </div>
 
-                        <!-- Message Banner Alert box -->
-                        <div id="feedback-box" class="hidden flex items-start gap-2.5 p-3.5 rounded-xl border text-xs leading-relaxed transition-all duration-300">
-                            <div id="feedback-icon" class="mt-0.5"></div>
-                            <div>
-                                <span id="feedback-title" class="font-semibold block">Processing System Routing</span>
-                                <span id="feedback-text"></span>
-                            </div>
-                        </div>
+
                         <!-- Submit button -->
                         <button type="submit" id="submit-btn" class="w-full flex items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-sky-500 via-sky-600 to-indigo-600 px-5 py-3 h-12 text-sm font-semibold text-white shadow-lg shadow-sky-500/10 transition-all duration-200 hover:shadow-sky-500/20 active:scale-[0.99] cursor-pointer">
                             <span class="tracking-wide font-bold" id="btn-text">Register for Priority Notification</span>
@@ -533,9 +529,6 @@
         const submitBtn = document.getElementById('submit-btn');
         const btnText = document.getElementById('btn-text');
         const btnIcon = document.getElementById('btn-icon');
-        const feedbackBox = document.getElementById('feedback-box');
-        const feedbackText = document.getElementById('feedback-text');
-        const feedbackTitle = document.getElementById('feedback-title');
         
         const formContainer = document.getElementById('form-container');
         const successContainer = document.getElementById('success-container');
@@ -546,6 +539,85 @@
         const summaryInterest = document.getElementById('summary-interest');
         const summaryTimestamp = document.getElementById('summary-timestamp');
         const resetBtn = document.getElementById('reset-btn');
+
+        // Toast notification system
+        function showToast(title, message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return null;
+
+            const toast = document.createElement('div');
+            toast.className = `transform translate-x-full transition-all duration-300 ease-out flex items-start gap-3 p-4 rounded-xl shadow-xl border bg-white pointer-events-auto max-w-sm w-full`;
+            
+            let iconHtml = '';
+            if (type === 'success') {
+                toast.classList.add('border-teal-100');
+                iconHtml = `
+                    <div class="h-6 w-6 rounded-full bg-teal-50 border border-teal-200 flex items-center justify-center shrink-0 text-teal-600">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>`;
+            } else if (type === 'error') {
+                toast.classList.add('border-rose-100');
+                iconHtml = `
+                    <div class="h-6 w-6 rounded-full bg-rose-50 border border-rose-200 flex items-center justify-center shrink-0 text-rose-600">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </div>`;
+            } else if (type === 'loading') {
+                toast.classList.add('border-sky-100');
+                iconHtml = `
+                    <div class="h-6 w-6 flex items-center justify-center shrink-0">
+                        <span class="inline-block animate-spin h-4.5 w-4.5 rounded-full border-2 border-sky-600/30 border-t-sky-600"></span>
+                    </div>`;
+            } else {
+                toast.classList.add('border-slate-100');
+                iconHtml = `
+                    <div class="h-6 w-6 rounded-full bg-indigo-50 border border-indigo-200 flex items-center justify-center shrink-0 text-indigo-600">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="16" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                    </div>`;
+            }
+
+            toast.innerHTML = `
+                ${iconHtml}
+                <div class="flex-1 min-w-0">
+                    <span class="text-xs font-bold text-slate-800 block leading-tight">${title}</span>
+                    <span class="text-[11px] text-slate-500 block mt-0.5 leading-normal">${message}</span>
+                </div>
+                <button class="text-slate-400 hover:text-slate-600 transition-colors shrink-0 items-center justify-center self-start" onclick="this.parentElement.remove()">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 10);
+
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    toast.classList.add('translate-x-full');
+                    toast.style.opacity = '0';
+                    setTimeout(() => {
+                        toast.remove();
+                    }, 300);
+                }, 4500);
+            }
+
+            return toast;
+        }
+
+        let activeLoadingToast = null;
 
         // AJAX Form Submission
         form.addEventListener('submit', function(e) {
@@ -567,11 +639,7 @@
             btnText.innerText = "Registering Store Protocol...";
             btnIcon.innerHTML = `<span class="inline-block animate-spin h-4.5 w-4.5 rounded-full border-2 border-white/30 border-t-white"></span>`;
 
-            feedbackBox.classList.remove('hidden');
-            feedbackBox.className = "flex items-start gap-2.5 p-3.5 rounded-xl border text-xs leading-relaxed transition-all duration-300 bg-sky-50 border-sky-100 text-sky-800";
-            feedbackTitle.innerText = "Processing Registration";
-            feedbackText.innerText = "Encrypting transmission and dispatching connection packets...";
-            document.getElementById('feedback-icon').innerHTML = '<span class="h-2.5 w-2.5 rounded-full bg-sky-500 animate-ping mt-1.5 shrink-0"></span>';
+            activeLoadingToast = showToast("Processing Registration", "Encrypting transmission and dispatching connection packets...", "loading");
 
             // Send standard async fetch AJAX transaction to enquiry.php
             fetch('enquiry.php', {
@@ -583,6 +651,11 @@
             })
             .then(response => response.json())
             .then(data => {
+                if (activeLoadingToast) {
+                    activeLoadingToast.remove();
+                    activeLoadingToast = null;
+                }
+
                 if (data.success) {
                     // Inject receipt values
                     summaryName.innerText = formData.name;
@@ -596,12 +669,10 @@
                     // Swap forms panel view layout smoothly
                     formContainer.classList.add('hidden');
                     successContainer.classList.remove('hidden');
+
+                    showToast("Registration Success", "Your pharmacy store has been successfully registered!", "success");
                 } else {
-                    // Show custom validated errors
-                    feedbackBox.className = "flex items-start gap-2.5 p-3.5 rounded-xl border text-xs leading-relaxed transition-all duration-300 bg-rose-50 border-rose-200 text-rose-800";
-                    feedbackTitle.innerText = "Subscription Error";
-                    feedbackText.innerText = data.message || "Failed to finalize registration. Please provide correct store coordinates.";
-                    document.getElementById('feedback-icon').innerHTML = `<svg class="w-4 h-4 text-rose-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+                    showToast("Subscription Error", data.message || "Failed to finalize registration. Please provide correct store coordinates.", "error");
                     
                     // Reset button states
                     submitBtn.disabled = false;
@@ -612,10 +683,12 @@
             })
             .catch(error => {
                 console.error('AJAX Failure:', error);
-                feedbackBox.className = "flex items-start gap-2.5 p-3.5 rounded-xl border text-xs leading-relaxed transition-all duration-300 bg-rose-50 border-rose-200 text-rose-800";
-                feedbackTitle.innerText = "Subscription Error";
-                feedbackText.innerText = "Network connection interrupted. Ensure server is active and retry.";
-                document.getElementById('feedback-icon').innerHTML = `<svg class="w-4 h-4 text-rose-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+                if (activeLoadingToast) {
+                    activeLoadingToast.remove();
+                    activeLoadingToast = null;
+                }
+
+                showToast("Subscription Error", "Network connection interrupted. Ensure server is active and retry.", "error");
                 
                 // Reset button states
                 submitBtn.disabled = false;
@@ -628,8 +701,6 @@
         // Toggle back to input form
         resetBtn.addEventListener('click', function() {
             form.reset();
-            feedbackBox.className = "hidden flex items-start gap-2.5 p-3.5 rounded-xl border text-xs leading-relaxed transition-all duration-300";
-            feedbackBox.classList.add('hidden');
             
             submitBtn.disabled = false;
             submitBtn.style.opacity = '1';
