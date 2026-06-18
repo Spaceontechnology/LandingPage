@@ -64,11 +64,11 @@
         
         <!-- Header -->
         <header class="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-200/80 pb-6 mb-8">
-            <a href="/" class="flex items-center hover:opacity-90 transition-opacity">
+            <a href="index.php" class="flex items-center hover:opacity-90 transition-opacity">
                 <img src="https://patelarsh.com/Pharmovix/PHARMOVIX.png" alt="Pharmovix Logo" class="h-10 sm:h-12 w-auto object-contain" referrerpolicy="no-referrer">
             </a>
             
-            <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 shadow-sm transition-all">
+            <a href="index.php" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 shadow-sm transition-all">
                 <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
