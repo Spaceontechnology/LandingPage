@@ -3,46 +3,11 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
-import mongoose from "mongoose";
 
 // Load environment variables
 dotenv.config();
 
-// MERN Schema definition for Waiting List registrations
-const EnquirySchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true },
-  phone: { type: String, required: true },
-  company: { type: String, required: true },
-  interest: { type: String, default: "Priority Waiting List Signup" },
-  message: { type: String },
-  submittedAt: { type: Date, default: Date.now }
-});
-
-const Enquiry = mongoose.models.Enquiry || mongoose.model("Enquiry", EnquirySchema);
-
-const tempEnquiries: any[] = [];
-let mongoConnected = false;
-
-async function connectDB() {
-  const uri = process.env.MONGODB_URI;
-  if (!uri) {
-    console.warn("⚠️ MONGODB_URI not specified. Running Express server with temporary in-memory persistence fallback.");
-    return;
-  }
-  try {
-    await mongoose.connect(uri);
-    mongoConnected = true;
-    console.log("🌱 [MERN Stack] Successfully connected to MongoDB database!");
-  } catch (err: any) {
-    console.error("❌ MongoDB connection failed:", err.message || err);
-  }
-}
-
 async function startServer() {
-  // Connect to Database
-  await connectDB();
-
   const app = express();
   const PORT = 3000;
 
@@ -73,31 +38,7 @@ async function startServer() {
 
   // Health check API endpoint
   app.get("/api/health", (req: Request, res: Response) => {
-    res.json({
-      status: "ok",
-      timestamp: new Date().toISOString(),
-      databaseActive: mongoConnected
-    });
-  });
-
-  // API to fetch registered subscribers from MongoDB / local list
-  app.get("/api/enquiries", async (req: Request, res: Response) => {
-    try {
-      if (mongoConnected) {
-        const enquiries = await Enquiry.find().sort({ submittedAt: -1 });
-        res.json({ success: true, count: enquiries.length, data: enquiries });
-      } else {
-        res.json({
-          success: true,
-          developmentMode: true,
-          count: tempEnquiries.length,
-          data: tempEnquiries,
-          message: "Database in fallback demo mode. Specify MONGODB_URI in secrets for remote persistence."
-        });
-      }
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message });
-    }
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
   // Enquiry Submission API Endpoint supporting multiple routes (React, PHP scripts)
@@ -116,38 +57,6 @@ async function startServer() {
 
       const finalMessage = message || "Priority Waiting List Signup - Please notify me when available!";
       const finalInterest = interest || "Priority Waiting List Signup";
-
-      // Save registration inside MongoDB (MERN protocol)
-      let databaseStored = false;
-      if (mongoConnected) {
-        try {
-          const doc = new Enquiry({
-            name,
-            email,
-            phone,
-            company,
-            interest: finalInterest,
-            message: finalMessage,
-          });
-          await doc.save();
-          databaseStored = true;
-          console.log(`🌱 [MongoDB] Successfully stored enrolment for "${company}" [${name}]`);
-        } catch (dbErr: any) {
-          console.error("🌱 [MongoDB] Error writing to collection:", dbErr.message || dbErr);
-        }
-      } else {
-        // Safe robust in-memory array tracking for preview/dev modes
-        tempEnquiries.push({
-          name,
-          email,
-          phone,
-          company,
-          interest: finalInterest,
-          message: finalMessage,
-          submittedAt: new Date()
-        });
-        console.log(`💾 [In-Memory] Cached registration in temporary array for "${company}" [${name}]`);
-      }
 
       // Email Setup details
       const adminEmail = process.env.ADMIN_EMAIL || "info@pharmovix.com";

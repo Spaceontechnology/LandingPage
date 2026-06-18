@@ -23,9 +23,7 @@ import {
   Briefcase,
   X,
   XCircle,
-  Info,
-  Database,
-  RefreshCw
+  Info
 } from "lucide-react";
 
 // Target launch date: October 15, 2026 at 09:00:00 UTC
@@ -90,34 +88,6 @@ export default function App() {
   const dismissToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
-
-  // MERN Admin Portal State
-  const [adminOpen, setAdminOpen] = useState(false);
-  const [enquiriesList, setEnquiriesList] = useState<any[]>([]);
-  const [loadingEnquiries, setLoadingEnquiries] = useState(false);
-
-  const fetchEnquiries = async () => {
-    setLoadingEnquiries(true);
-    try {
-      const res = await fetch("/api/enquiries");
-      const json = await res.json();
-      if (json.success) {
-        setEnquiriesList(json.data || []);
-      } else {
-        showToast("Database Error", "Failed to load registrations.", "error");
-      }
-    } catch (err) {
-      showToast("Connection Error", "Could not reach database endpoint.", "error");
-    } finally {
-      setLoadingEnquiries(false);
-    }
-  };
-
-  useEffect(() => {
-    if (adminOpen) {
-      fetchEnquiries();
-    }
-  }, [adminOpen]);
 
   // Handle Countdown Ticks
   useEffect(() => {
@@ -264,131 +234,7 @@ export default function App() {
         </AnimatePresence>
       </div>
 
-      {/* Floating DB Admin Portal Trigger (Bottom Left) */}
-      <div className="fixed bottom-5 left-5 z-40">
-        <button
-          onClick={() => setAdminOpen(true)}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-700/50 shadow-xl transition-all font-sans text-xs font-semibold cursor-pointer pointer-events-auto"
-        >
-          <Database className="w-4 h-4 text-sky-400 rotate-0 animate-pulse" />
-          <span>View DB Registry (MERN)</span>
-        </button>
-      </div>
-
-      {/* MERN Database Enquiries Overlay Modal */}
-      <AnimatePresence>
-        {adminOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[85vh]"
-            >
-              {/* Header */}
-              <div className="p-5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 bg-sky-50 border border-sky-100 text-sky-600 rounded-xl">
-                    <Database className="w-5 h-5" />
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-bold text-slate-800 text-sm sm:text-base leading-tight">MERN Stack Database Portal</h3>
-                    <p className="text-[11px] text-slate-400 font-medium">Live collection: <span className="font-mono text-sky-600 bg-sky-50 px-1 py-0.5 rounded">enquiries</span></p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={fetchEnquiries}
-                    disabled={loadingEnquiries}
-                    className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                    title="Refresh Data"
-                  >
-                    <RefreshCw className={`w-4 h-4 ${loadingEnquiries ? "animate-spin text-sky-600" : ""}`} />
-                  </button>
-                  <button
-                    onClick={() => setAdminOpen(false)}
-                    className="p-1.5 text-slate-400 hover:text-slate-755 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Body */}
-              <div className="p-6 overflow-y-auto flex-1 bg-slate-50/50">
-                {loadingEnquiries ? (
-                  <div className="flex flex-col items-center justify-center py-16 gap-3">
-                    <div className="animate-spin h-8 w-8 rounded-full border-3 border-sky-600/20 border-t-sky-600" />
-                    <span className="text-xs font-medium text-slate-400 font-mono">Querying subscriber records...</span>
-                  </div>
-                ) : enquiriesList.length === 0 ? (
-                  <div className="text-center py-12">
-                    <p className="text-sm font-semibold text-slate-700">No Subscriber Documents Found</p>
-                    <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1">
-                      No records have registered yet or the connection is waiting. Submit a store subscription using the front-end form to save a document!
-                    </p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto rounded-xl border border-slate-100 bg-white">
-                    <table className="w-full text-left border-collapse text-xs">
-                      <thead>
-                        <tr className="bg-slate-50/75 border-b border-slate-100 text-slate-400 font-mono uppercase tracking-wider text-[10px]">
-                          <th className="p-4 font-bold">Store & Subscriber</th>
-                          <th className="p-4 font-bold">Contact Coordinates</th>
-                          <th className="p-4 font-bold">Core Interest</th>
-                          <th className="p-4 font-bold">Message Details</th>
-                          <th className="p-4 font-bold">Timestamp (UTC)</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-slate-700">
-                        {enquiriesList.map((item, idx) => (
-                          <tr key={item._id || idx} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="p-4 max-w-[200px] text-left">
-                              <span className="font-bold text-slate-800 block text-sm mb-0.5">{item.company}</span>
-                              <span className="font-medium text-slate-500 flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-sky-400"></span>{item.name}
-                              </span>
-                            </td>
-                            <td className="p-4 font-mono space-y-0.5 text-left">
-                              <span className="block text-slate-600 font-semibold">{item.email}</span>
-                              <span className="block text-slate-400">{item.phone}</span>
-                            </td>
-                            <td className="p-4 text-left">
-                              <span className="inline-block px-2.5 py-1 text-[10px] font-bold bg-sky-50 text-sky-700 rounded-full border border-sky-100 uppercase tracking-wider font-sans">
-                                {item.interest}
-                              </span>
-                            </td>
-                            <td className="p-4 max-w-[240px] text-slate-500 italic leading-relaxed text-left">
-                              "{item.message}"
-                            </td>
-                            <td className="p-4 font-mono text-slate-400 whitespace-nowrap text-left">
-                              {new Date(item.submittedAt || item.timestamp || Date.now()).toISOString().replace("T", " ").substring(0, 19)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-
-              {/* Status Footer */}
-              <div className="p-4 bg-white border-t border-slate-100 text-[11px] text-slate-400 font-medium flex flex-col sm:flex-row justify-between items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <div className={`h-2.5 w-2.5 rounded-full ${enquiriesList.length > 0 ? "bg-emerald-500" : "bg-sky-500 animate-pulse"}`} />
-                  <span>Showing {enquiriesList.length} registration documents stored inside database</span>
-                </div>
-                <div className="font-mono text-sky-600 font-semibold bg-sky-50/50 rounded-lg px-2.5 py-1 border border-sky-100/30">
-                  Status: MERN STACK ACTIVE
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
       {/* Dynamic Aesthetic Background Grids & Blobs */}
-
       <div className="absolute inset-0 pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-sky-200/20 blur-[120px]" />
         <div className="absolute bottom-[10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-teal-200/20 blur-[150px]" />
