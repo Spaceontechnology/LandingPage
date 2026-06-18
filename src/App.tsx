@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { FeaturesMockup } from "./components/FeaturesMockup";
+import { PrivacyPage } from "./components/PrivacyPage";
 import {
   Beaker,
   Dna,
@@ -69,7 +70,42 @@ export default function App() {
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [serverEnquiryReceipt, setServerEnquiryReceipt] = useState<any>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [currentRoute, setCurrentRoute] = useState<"main" | "privacy">(() => {
+    const path = window.location.pathname;
+    const hash = window.location.hash;
+    if (path.includes("privacy") || hash.includes("privacy")) {
+      return "privacy";
+    }
+    return "main";
+  });
+
+  useEffect(() => {
+    const handleUrlChange = () => {
+      const path = window.location.pathname;
+      const hash = window.location.hash;
+      if (path.includes("privacy") || hash.includes("privacy")) {
+        setCurrentRoute("privacy");
+      } else {
+        setCurrentRoute("main");
+      }
+    };
+    window.addEventListener("popstate", handleUrlChange);
+    window.addEventListener("hashchange", handleUrlChange);
+    return () => {
+      window.removeEventListener("popstate", handleUrlChange);
+      window.removeEventListener("hashchange", handleUrlChange);
+    };
+  }, []);
+
+  const navigateToRoute = (route: "main" | "privacy") => {
+    setCurrentRoute(route);
+    if (route === "privacy") {
+      window.history.pushState(null, "", "#/privacy-policy");
+    } else {
+      window.history.pushState(null, "", "#/");
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const showToast = (title: string, message: string, type: Toast["type"]) => {
     const id = Math.random().toString(36).substr(2, 9);
@@ -177,6 +213,10 @@ export default function App() {
     setStatusMessage("");
     setServerEnquiryReceipt(null);
   };
+
+  if (currentRoute === "privacy") {
+    return <PrivacyPage onBack={() => navigateToRoute("main")} />;
+  }
 
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-[#fafafa] font-sans selection:bg-sky-500/10 selection:text-sky-900">
@@ -579,7 +619,7 @@ export default function App() {
             <span className="text-slate-200">|</span>
             <span className="font-medium text-slate-600">Powered By SpaceOn Technology</span>
             <span className="text-slate-200">|</span>
-            <button onClick={() => setIsPrivacyOpen(true)} className="hover:text-sky-600 transition-colors font-medium cursor-pointer">Privacy Policy</button>
+            <a href="privacy.html" className="hover:text-sky-600 transition-colors font-medium">Privacy Policy</a>
           </div>
           
           <div className="flex items-center gap-4">
@@ -591,189 +631,6 @@ export default function App() {
         </footer>
 
       </div>
-
-      {/* Elegant React-Native Privacy Policy Modal Overlay */}
-      <AnimatePresence>
-        {isPrivacyOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsPrivacyOpen(false)}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
-            />
-
-            {/* Modal Box */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-4xl max-h-[85vh] overflow-y-auto bg-white rounded-2xl shadow-2xl border border-slate-200/80 z-10 flex flex-col"
-            >
-              {/* Header */}
-              <div className="sticky top-0 bg-white border-b border-slate-200/80 px-6 py-4 flex items-center justify-between z-20">
-                <div className="flex items-center gap-3">
-                  <img src="https://patelarsh.com/Pharmovix/PHARMOVIX.png" alt="Pharmovix Logo" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
-                  <span className="h-5 w-px bg-slate-200 hidden sm:inline-block" />
-                  <span className="text-slate-400 font-mono text-[10px] uppercase tracking-wider font-semibold hidden sm:inline-block">Compliance Verified</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsPrivacyOpen(false)}
-                  className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-all cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Dynamic Body Content */}
-              <div className="p-6 sm:p-10 text-slate-600 text-sm leading-relaxed space-y-8">
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-sky-950 font-display tracking-tight mb-2">Privacy Policy</h1>
-                  <p className="text-xs text-slate-400 font-mono font-medium flex items-center gap-1.5 uppercase tracking-widest">
-                    <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    Last Updated: June 2026
-                  </p>
-                  <p className="mt-4 text-slate-600 sm:text-base font-light">
-                    Welcome to <span className="font-semibold text-sky-700">Pharmovix</span>, powered by <span className="font-semibold text-sky-700">SpaceOn Technology</span>. 
-                    We are committed to protecting your privacy and safeguarding your data. This Privacy Policy explains how we collect, use, and protect information when you use Pharmovix and related services.
-                  </p>
-                </div>
-
-                {/* 1. Information We Collect */}
-                <div>
-                  <h2 className="text-lg font-bold text-sky-950 mb-4 flex items-center gap-2 font-display">
-                    <span className="text-sky-600 font-mono text-xs bg-sky-50 border border-sky-100 rounded-md w-6 h-6 flex items-center justify-center font-bold">01</span>
-                    Information We Collect
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl border border-slate-100 bg-[#fbfdfd] shadow-sm">
-                      <span className="font-bold text-sky-800 text-xs sm:text-xs uppercase tracking-wider mb-2.5 block">Business Information</span>
-                      <ul className="space-y-1 text-xs text-slate-500 font-medium">
-                        <li>• Pharmacy Name</li>
-                        <li>• Owner Name</li>
-                        <li>• Business Address</li>
-                        <li>• GST Number</li>
-                        <li>• Email Address</li>
-                        <li>• Contact Information</li>
-                      </ul>
-                    </div>
-                    <div className="p-4 rounded-xl border border-slate-100 bg-[#fbfdfd] shadow-sm">
-                      <span className="font-bold text-teal-800 text-xs uppercase tracking-wider mb-2.5 block">Customer Information</span>
-                      <ul className="space-y-1 text-xs text-slate-500 font-medium">
-                        <li>• Customer Name</li>
-                        <li>• Mobile Number</li>
-                        <li>• Prescription Details (if entered)</li>
-                        <li>• Purchase History</li>
-                      </ul>
-                    </div>
-                    <div className="p-4 rounded-xl border border-slate-100 bg-[#fbfdfd] shadow-sm">
-                      <span className="font-bold text-indigo-800 text-xs uppercase tracking-wider mb-2.5 block">Inventory Information</span>
-                      <ul className="space-y-1 text-xs text-slate-500 font-medium">
-                        <li>• Medicine Details</li>
-                        <li>• Stock Records</li>
-                        <li>• Supplier Information</li>
-                        <li>• Expiry Dates</li>
-                        <li>• Sales and Purchase Records</li>
-                      </ul>
-                    </div>
-                    <div className="p-4 rounded-xl border border-slate-100 bg-[#fbfdfd] shadow-sm">
-                      <span className="font-bold text-slate-800 text-xs uppercase tracking-wider mb-2.5 block">Technical Information</span>
-                      <ul className="space-y-1 text-xs text-slate-500 font-medium">
-                        <li>• IP Address</li>
-                        <li>• Browser Information</li>
-                        <li>• Device Information</li>
-                        <li>• Login Time and Activity Logs</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 2. How We Use */}
-                <div>
-                  <h2 className="text-lg font-bold text-sky-950 mb-3 flex items-center gap-2 font-display">
-                    <span className="text-sky-600 font-mono text-xs bg-sky-50 border border-sky-100 rounded-md w-6 h-6 flex items-center justify-center font-bold">02</span>
-                    How We Use Your Information
-                  </h2>
-                  <ul className="space-y-2 list-none pl-1 text-xs sm:text-sm">
-                    {["Provide and maintain Pharmovix services.", "Manage inventory, billing, and reports.", "Send WhatsApp notifications for stock and expiry alerts.", "Improve software functionality and user experience.", "Provide technical support.", "Comply with applicable laws and regulations."].map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-2.5">
-                        <span className="h-5 w-5 shrink-0 bg-sky-50 border border-sky-100 rounded-md flex items-center justify-center text-sky-600 font-mono text-xs font-bold mt-0.5">✓</span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* 3. Data Security */}
-                <div>
-                  <h2 className="text-lg font-bold text-sky-950 mb-3 flex items-center gap-2 font-display">
-                    <span className="text-sky-600 font-mono text-xs bg-sky-50 border border-sky-100 rounded-md w-6 h-6 flex items-center justify-center font-bold">03</span>
-                    Data Security
-                  </h2>
-                  <p className="mb-4">
-                    We implement industry-standard security measures to protect your data, including encrypted connections (HTTPS), secure cloud infrastructure, selective role authentication, and regular automated backups.
-                  </p>
-                  <p className="italic text-xs text-slate-400">
-                    While we strive to protect your information, no method of transmission or storage is completely secure.
-                  </p>
-                </div>
-
-                {/* 4. Data Sharing */}
-                <div>
-                  <h2 className="text-lg font-bold text-sky-950 mb-3 flex items-center gap-2 font-display">
-                    <span className="text-sky-600 font-mono text-xs bg-sky-50 border border-sky-100 rounded-md w-6 h-6 flex items-center justify-center font-bold">04</span>
-                    Data Sharing
-                  </h2>
-                  <p className="mb-3">
-                    Pharmovix does <strong className="text-sky-950 underline decoration-sky-400 decoration-2">not sell, rent, or trade</strong> your personal or business information. Data is shared only with strictly scoped essential sub-processors (e.g. AWS Secure Hosting, WhatsApp Business APIs, or payment gateways).
-                  </p>
-                </div>
-
-                {/* Contact Us */}
-                <div>
-                  <h2 className="text-lg font-bold text-sky-950 mb-3 flex items-center gap-2 font-display">
-                    <span className="text-sky-600 font-mono text-xs bg-sky-50 border border-sky-100 rounded-md w-6 h-6 flex items-center justify-center font-bold">05</span>
-                    Contact Us
-                  </h2>
-                  <div className="p-5 rounded-2xl border border-sky-100 bg-[#fbfdfd] flex flex-col sm:flex-row justify-between gap-4">
-                    <div className="space-y-1.5 text-xs sm:text-sm text-slate-600">
-                      <strong className="text-sky-950 text-base block">Pharmovix</strong>
-                      <span className="text-xs text-slate-400 font-mono font-semibold block uppercase tracking-wider">Powered by SpaceOn Technology</span>
-                      <div className="pt-2 space-y-1 text-slate-500 font-medium">
-                        <div>🌐 Website: <a href="https://www.pharmovix.com" className="text-sky-600 hover:underline">www.pharmovix.com</a></div>
-                        <div>📧 Email: <a href="mailto:info@pharmovix.com" className="text-sky-600 hover:underline">info@pharmovix.com</a></div>
-                        <div>📞 Phone: <a href="tel:+917069182990" className="text-sky-600 hover:underline">+91 70691 82990</a></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Consent */}
-                <div className="border-t border-slate-100 pt-6">
-                  <p className="text-xs text-slate-400">
-                    By using Pharmovix, you acknowledge that you have read, understood, and agreed to this Privacy Policy.
-                  </p>
-                </div>
-              </div>
-
-              {/* Close Button Footer */}
-              <div className="sticky bottom-0 bg-slate-50 border-t border-slate-200/80 px-6 py-4 flex justify-end z-20">
-                <button
-                  type="button"
-                  onClick={() => setIsPrivacyOpen(false)}
-                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-xl shadow-sm transition-all cursor-pointer"
-                >
-                  I Understand
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
     </div>
-);
+  );
 }
