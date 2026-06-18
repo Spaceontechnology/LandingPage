@@ -30,6 +30,12 @@ async function startServer() {
     res.sendFile(path.join(process.cwd(), "php", "index.php"));
   });
 
+  // Serve the Privacy Policy page on dedicated routes
+  app.get(["/privacy", "/privacy-policy", "/privacy-policy.html", "/php/privacy.php"], (req: Request, res: Response) => {
+    res.setHeader("Content-Type", "text/html");
+    res.sendFile(path.join(process.cwd(), "php", "privacy.php"));
+  });
+
   // Health check API endpoint
   app.get("/api/health", (req: Request, res: Response) => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });

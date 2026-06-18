@@ -577,6 +577,8 @@ export default function App() {
             <span>&copy; {new Date().getFullYear()} Pharmovix Inc. All rights reserved.</span>
             <span className="text-slate-200">|</span>
             <span className="font-medium text-slate-600">Powered By SpaceOn Technology</span>
+            <span className="text-slate-200">|</span>
+            <a href="/privacy-policy" className="hover:text-sky-600 transition-colors font-medium">Privacy Policy</a>
           </div>
           
           <div className="flex items-center gap-4">
