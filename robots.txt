@@ -1,0 +1,11 @@
+# Robots.txt for Pharmovix (https://www.pharmovix.com)
+# Optimized for Google, Bing, DuckDuckGo, and other web crawlers
+
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /privacy
+Allow: /privacy.html
+
+# Sitemaps
+Sitemap: https://www.pharmovix.com/sitemap.xml
